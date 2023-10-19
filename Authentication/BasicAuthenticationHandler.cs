@@ -9,14 +9,14 @@ using Microsoft.Extensions.Options;
 public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly AppContext db;
-    public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder url, ISystemClock clock, AppContext context):
+    public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder url, ISystemClock clock, AppContext context) :
     base(options, logger, url, clock)
     {
         db = context;
     }
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if(!Request.Headers.ContainsKey("Authorization"))
+        if (!Request.Headers.ContainsKey("Authorization"))
         {
             return AuthenticateResult.Fail("Authorization header was not found");
         }
@@ -31,21 +31,21 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
 
             User user = db.Users.Where(x => x.Login == login && x.Password == password).First();
 
-            if(user == null)
+            if (user == null)
             {
                 return AuthenticateResult.Fail("Invalid login or password");
             }
             else
             {
-                var claims = new[] {new Claim(ClaimTypes.Name, user.Login)};
+                var claims = new[] { new Claim(ClaimTypes.Name, user.Login) };
                 var identity = new ClaimsIdentity(claims, Scheme.Name);
                 var principal = new ClaimsPrincipal(identity);
-                var ticket = new AuthenticationTicket(principal,Scheme.Name);
+                var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
                 return AuthenticateResult.Success(ticket);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return AuthenticateResult.Fail("Error");
         }

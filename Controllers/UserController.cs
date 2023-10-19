@@ -1,6 +1,6 @@
 namespace ImageNet.Controller
 {
-    
+
     using ImageNet.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Components.Forms;
@@ -10,7 +10,7 @@ namespace ImageNet.Controller
     [Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class UserController: ControllerBase
+    public class UserController : ControllerBase
     {
         private AppContext db;
         private readonly IConfiguration configuration;
@@ -25,11 +25,11 @@ namespace ImageNet.Controller
         [HttpPost("register")]
         public async Task<IActionResult> Register(string login, string password)
         {
-            if(db.Users.Where(x => x.Login == login).FirstOrDefault() != null)
+            if (db.Users.Where(x => x.Login == login).FirstOrDefault() != null)
             {
                 return BadRequest();
             }
-            var user = new User() {Login = login, Password = password};
+            var user = new User() { Login = login, Password = password };
             db.Users.Add(user);
             await db.SaveChangesAsync();
             return Ok(user);
@@ -48,13 +48,13 @@ namespace ImageNet.Controller
         {
             var login = HttpContext.User.Identity.Name;
             string path = configuration.GetSection("PathToImageStorage").Value;
-            if(!Directory.Exists(path))
+            if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
             string filename = imgFile.FileName;
-            string filenameWithPath = Path.Combine(path,filename);
-            using(var stream = new FileStream(filenameWithPath, FileMode.Create))
+            string filenameWithPath = Path.Combine(path, filename);
+            using (var stream = new FileStream(filenameWithPath, FileMode.Create))
             {
                 imgFile.CopyTo(stream);
             }
@@ -75,14 +75,14 @@ namespace ImageNet.Controller
             var users = db.Users.Include(x => x.Images);
             var user = users.Where(x => x.Login == login).First();
             var image = user.Images.Where(x => x.Id == imgid).FirstOrDefault();
-            if(image == null)
+            if (image == null)
             {
                 return NotFound();
             }
             var path = configuration.GetSection("PathToImageStorage").Value;
             var pathToFile = Path.Combine(path, image.Path);
             FileInfo file = new FileInfo(pathToFile);
-            if(file.Exists)
+            if (file.Exists)
             {
                 file.Delete();
             }
@@ -97,7 +97,7 @@ namespace ImageNet.Controller
         {
             var login = HttpContext.User.Identity.Name;
             var friend = db.Users.Where(x => x.Id == friendId).FirstOrDefault();
-            if(friend == null)
+            if (friend == null)
             {
                 return NotFound();
             }
@@ -113,14 +113,14 @@ namespace ImageNet.Controller
         {
             var login = HttpContext.User.Identity.Name;
             var users = db.Users.Include(x => x.Friends).Include(x => x.Images).ToList();
-            if(users.Where(x => x.Id == id).FirstOrDefault() == null)
+            if (users.Where(x => x.Id == id).FirstOrDefault() == null)
             {
                 return NotFound();
             }
             var friend = users.Where(x => x.Id == id).FirstOrDefault();
             var user = users.Where(x => x.Login == login).FirstOrDefault();
-            
-            if(friend.Friends.Any(x => x.Id == user.Id))
+
+            if (friend.Friends.Any(x => x.Id == user.Id))
             {
                 return Ok(friend.Images);
             }
